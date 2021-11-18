@@ -2,6 +2,7 @@ typedef struct dialogue {
     int entity_id;
     char *dialogue_entry;
     char *dialogue_option;
+    FILE *dialoguexml;
 }dialogue;
 
 typedef struct map {
@@ -27,4 +28,5 @@ typedef struct statistic {
     int tactical;
     int operations;
 }statistic;
+
 

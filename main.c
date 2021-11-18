@@ -1,14 +1,20 @@
 #include <SDL2/SDL.h>
+// include <SDL2_ttf-devel>
 #include <stdio.h>
+#include <stdlib.h>
 #include "components.h"
 
-const int SCREEN_HEIGHT = 640;
-const int SCREEN_WIDTH = 480;
+const int SCREEN_HEIGHT = 320;
+const int SCREEN_WIDTH = 240;
 
 // Prototypes
 bool loadbitmap(SDL_Surface *surface, char *path);
-bool controlkeys(SDL_Event event, SDL_Rect *sprite_position);
+bool ControlInput(SDL_Event event, SDL_Rect *sprite_position);
+bool DetectCollision(SDL_Rect *a, SDL_Rect *b);
+int aimovement(SDL_Rect *sprite_position);
+void controlconversation();
 void cleanup(void);
+
 
 int main(int argc, char* argv[])
 {
@@ -21,6 +27,15 @@ int main(int argc, char* argv[])
     // Background image
     SDL_Surface *map_surface;
     
+    sprite cap_sprite;
+    cap_sprite.entity_id = 1;
+    cap_sprite.sprite_surface = SDL_LoadBMP("resources/capred.bmp");
+
+    position cap_sprite_position;
+    cap_sprite_position.entity_id = 1;
+    cap_sprite_position.sprite_position.x = 200;
+    cap_sprite_position.sprite_position.y = 68;
+
     // Test sprite surface and rect
     SDL_Surface *sprite_surface;
     SDL_Rect sprite_position;
@@ -46,8 +61,10 @@ int main(int argc, char* argv[])
     // loadbitmap(map_surface, "resources/brokenworld.bmp");
 
     sprite_surface = SDL_LoadBMP("resources/capred.bmp");
+    //loadbitmap(sprite_surface, "resources/capred.bmp");
     sprite_position.x = 200;
     sprite_position.y = 68;
+    SDL_SetColorKey(sprite_surface, SDL_TRUE, SDL_MapRGB(sprite_surface->format, 255, 255, 255));
 
 
     bool quit = false;
@@ -55,14 +72,21 @@ int main(int argc, char* argv[])
     SDL_Event event;
     const Uint8 *keystate = SDL_GetKeyboardState(NULL);
 
-    Uint32 SDL_GetMouseState(int *mouse_x, int *mouse_y);
-
     while (!quit)
     {
         while (SDL_PollEvent(&event))
         {
-            controlkeys(event, &sprite_position);
-            quit = controlkeys(event, &sprite_position);
+            // Event Controls
+            ControlInput(event, &sprite_position);
+            quit = ControlInput(event, &sprite_position);
+            
+            // Scene Control
+            // stagemanager();
+
+            // Collision Detection
+            DetectCollision(&sprite_position, &green_alien_pos.sprite_position);
+
+            // Rendering
             SDL_BlitSurface(map_surface, NULL, screen_surface, NULL);
             SDL_BlitSurface(sprite_surface, NULL, screen_surface, &sprite_position);
             SDL_BlitSurface(green_alien_onscreen.sprite_surface, NULL, screen_surface, &green_alien_pos.sprite_position);
@@ -79,7 +103,7 @@ int main(int argc, char* argv[])
 }
 
 
-bool controlkeys(SDL_Event event, SDL_Rect *sprite_position)
+bool ControlInput(SDL_Event event, SDL_Rect *sprite_position)
 {
     bool quit = false;
     const Uint8 *keystate = SDL_GetKeyboardState(NULL);
@@ -88,6 +112,10 @@ bool controlkeys(SDL_Event event, SDL_Rect *sprite_position)
         quit = true;
         printf("SDL: Quit Event\n");
         return quit;
+    }
+    if(event.type == SDL_MOUSEBUTTONDOWN)
+    {
+        printf("SDL: Mouse Button Down");
     }
     if (keystate[SDL_SCANCODE_UP])
     {
@@ -114,6 +142,19 @@ bool controlkeys(SDL_Event event, SDL_Rect *sprite_position)
         printf("Player X: %i\nPlayer Y: %i\n", sprite_position->x, sprite_position->y);
     }
 
+    int mouse_x;
+    int mouse_y;
+
+    Uint32 SDL_GetMouseState(int *mouse_x, int *mouse_y);
+    Uint32 buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+
+    // SDL_Log("Mouse cursor is at %d, %d", mouse_x, mouse_y);
+
+    if ((buttons & SDL_BUTTON_LMASK) != 0) 
+    {
+        SDL_Log("Mouse Button 1 (left) is pressed.\nMouse cursor is at %d, %d", mouse_x, mouse_y);
+    }
+
     return quit;
 }
 
@@ -123,8 +164,29 @@ bool loadbitmap(SDL_Surface *surface, char *path)
     surface = SDL_LoadBMP(path);
     if (surface == NULL)
     {
+        printf("Failed to load %s\n", path);
         return false;
     }
     return true;
 }
 
+bool DetectCollision(SDL_Rect *a, SDL_Rect *b)
+{
+    if (a->x == b->x && a->y == b->y)
+    {
+        printf("Collision Detected!\n");
+        return true;
+    }
+    return false;
+}
+
+int aimovement(SDL_Rect *sprite_position)
+{
+
+}
+
+void cleanup(void)
+{
+    //Free Surfaces and Destroy Windows
+    ;
+}
